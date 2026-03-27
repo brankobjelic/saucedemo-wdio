@@ -1,45 +1,65 @@
-const LoginPage = require('../po/pages/login.page');
-const InventoryPage = require('../po/pages/inventory.page');
+const { pages } = require('../po/pages');
 
 describe('SauceDemo Inventory Functional Logic', () => {
-    
-    // Data Provider for UC-2
+    const loginPage = pages('login');
+    const inventoryPage = pages('inventory');
+
+    /**
+     * Data Provider for UC-2: Parametrization
+     * Decouples the test data (Product Names) from the execution logic.
+     */
     const productSets = [
         { name1: 'Sauce Labs Backpack', name2: 'Sauce Labs Bike Light' }
     ];
 
     beforeEach(async () => {
-        await LoginPage.open();
-        await LoginPage.login('standard_user', 'secret_sauce');
+        // Shared setup for all inventory tests
+        await loginPage.open();
+        await loginPage.login('standard_user', 'secret_sauce');
     });
 
     /**
-     * UC-1: Sorting Validation
+     * UC-1: Verify that selecting "Price (low to high)" 
+     * sorts the items correctly in the UI.
      */
-    it('should verify "Price (low to high)" sorting order', async () => {
-        await InventoryPage.sortDropdown.selectByAttribute('value', 'lohi');
+    it('should sort products by price from low to high', async () => {
+        // 1. Interact with the sorting dropdown
+        await inventoryPage.sortDropdown.selectByAttribute('value', 'lohi');
 
-        const uiPrices = await InventoryPage.getAllPrices();
-        const expectedOrder = [...uiPrices].sort((a, b) => a - b);
+        // 2. Get the prices as they appear on the UI
+        const uiPrices = await inventoryPage.getAllPrices();
+        
+        // 3. Create a mathematically sorted version as our "Source of Truth"
+        const expectedPrices = [...uiPrices].sort((a, b) => a - b);
 
-        await expect(uiPrices).toEqual(expectedOrder, 
-            `Sorting Failed! Expected: ${expectedOrder} but got: ${uiPrices}`
+        // 4. Assertion with custom error message for better debugging
+        await expect(uiPrices).toEqual(expectedPrices, 
+            `UI Sorting failed! Expected order: ${expectedPrices}, but got: ${uiPrices}`
         );
     });
 
     /**
-     * UC-2: Cart State (Parametrized)
+     * UC-2: Verify the shopping cart badge updates 
+     * based on adding and removing specific items.
      */
     productSets.forEach(({ name1, name2 }) => {
         it(`should update cart badge when adding/removing: ${name1} and ${name2}`, async () => {
-            // Add two items
-            await InventoryPage.item(name1).addButton.click();
-            await InventoryPage.item(name2).addButton.click();
-            await expect(InventoryPage.header.cartBadge).toHaveText('2', 'Badge should show 2 items');
+            // Add two items using the Component-based POM
+            await inventoryPage.item(name1).addButton.click();
+            await inventoryPage.item(name2).addButton.click();
+            
+            // Verify badge increment
+            await expect(inventoryPage.header.cartBadge).toHaveText('2', 
+                'Cart badge did not reach 2 after adding items'
+            );
 
             // Remove one item
-            await InventoryPage.item(name1).removeButton.click();
-            await expect(InventoryPage.header.cartBadge).toHaveText('1', 'Badge should show 1 item after removal');
+            await inventoryPage.item(name1).removeButton.click();
+            
+            // Verify badge decrement
+            await expect(inventoryPage.header.cartBadge).toHaveText('1', 
+                'Cart badge did not decrement to 1 after removing an item'
+            );
         });
     });
 });

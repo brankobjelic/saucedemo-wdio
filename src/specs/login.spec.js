@@ -1,15 +1,15 @@
-const LoginPage = require('../po/pages/login.page');
+const { pages } = require('../po/pages');
 
-describe('Login Page Visuals', () => {
-    it('should show the correct page title', async () => {
-        await LoginPage.open();
+describe('SauceDemo Login Visuals', () => {
+    const loginPage = pages('login');
+
+    it('should show the correct page title and login button', async () => {
+        await loginPage.open();
+        
+        // Asserting the page title
         await expect(browser).toHaveTitle('Swag Labs');
-    });
-
-    // You can add a quick check for the login button text here 
-    // to satisfy the "text-based XPath" requirement one more time.
-    it('should have a login button with the correct text', async () => {
-        await LoginPage.open();
-        await expect(LoginPage.btnSubmit).toBePresent();
+        
+        // Text-based XPath assertion for the login button
+        await expect(loginPage.btnSubmit).toBePresent();
     });
 });

@@ -38,4 +38,4 @@ class InventoryPage extends BasePage {
         return prices;
     }
 }
-module.exports = new InventoryPage();
+module.exports = InventoryPage;

@@ -22,4 +22,4 @@ class LoginPage extends BasePage {
         await this.btnSubmit.click();
     }
 }
-module.exports = new LoginPage();
+module.exports = LoginPage;
